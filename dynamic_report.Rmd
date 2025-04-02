@@ -1,0 +1,98 @@
+---
+title: "My dynamic report"
+subtitle: "Daily Mobile Phone Usage"
+author: "CAI WEI"
+output: html_fragment
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=FALSE, message=FALSE, warning=FALSE, error=FALSE)
+library(tidyverse)
+
+```
+
+```{css}
+body {
+  font-family: "Segoe UI", "Helvetica Neue", sans-serif;
+  line-height: 1.6;
+  margin: 2em;
+  background: #f7f9fc;
+  color: #333;
+}
+
+h2 {
+  border-left: 6px solid #4a90e2;
+  padding-left: 10px;
+  margin-top: 2em;
+  color: #2c3e50;
+}
+
+p {
+  font-size: 16px;
+}
+```
+
+## Import data
+```{r}
+logged_data <- read.csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vQnXj1DqUHrhew5h86KAKoIVme16QkTopxrdBPqxsLJK3jh8_oreRlh4EB_29QU8w8AexFhFG2Dd5ze/pub?gid=1532890904&single=true&output=csv",header = TRUE)
+
+latest_data <- logged_data %>%
+  rename(
+    usage_minutes = Q1..Approximately.how.many.minutes.did.you.spend.using.your.mobile.phone.today.,
+    primary_activity = Q2..What.was.your.primary.phone.activity.today.,
+    usage_location = Q3..Where.were.you.mostly.using.your.phone.today.,
+    age_range = Q4..What.is.your.age.range.,
+    productivity_score = Q5..On.a.scale.from.1.to.5..how.much.do.you.think.your.phone.use.affected.your.productivity.today.
+  )
+
+```
+
+## Summary of Usage Time
+```{r}
+summary(latest_data$usage_minutes)
+mean(latest_data$usage_minutes)
+sd(latest_data$usage_minutes)
+ggplot(latest_data, aes(x = usage_minutes)) +
+  geom_histogram(binwidth = 100) +
+  labs(title = "Distribution of Mobile Phone Usage Time",
+       x = "Minutes per Day", y = "Count")
+```
+
+On average, participants used their phones for `r round(mean(latest_data$usage_minutes), 1) `minutes per day,
+with a standard deviation of `r round(sd(latest_data$usage_minutes), 1)` minutes.
+
+## Productivity Impact Score
+```{r}
+ggplot(latest_data, aes(x = as.factor(productivity_score))) +
+  geom_bar() +
+  labs(title = "Self-Reported Productivity Impact", x = "Score (1=Low, 5=High)", y = "Count")
+
+```
+
+The most common productivity scores were around 3 and 4, indicating a moderate level of impact from mobile phone usage.
+
+## Most Common Phone Activities
+```{r}
+activity_data <- separate_rows(latest_data, primary_activity, sep = ", ")
+ggplot(activity_data, aes(x = primary_activity)) +
+  geom_bar() +
+  coord_flip() +
+  labs(title = "Most Common Primary Activities", x = "Activity", y = "Count")
+
+```
+
+Participants engaged in a wide variety of phone activities, with social media, messaging, and studying being the most common.
+
+## Phone Usage Locations
+```{r}
+location_data <- separate_rows(latest_data, usage_location, sep = ", ")
+ggplot(location_data, aes(x = usage_location)) +
+  geom_bar() +
+  labs(title = "Phone Usage Locations", x = "Location", y = "Count")
+```
+
+Most phone usage occurred at home, followed by use on public transport and in class.
+
+
+
+
